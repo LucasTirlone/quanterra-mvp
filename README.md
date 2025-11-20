@@ -10,16 +10,14 @@ Este projeto é uma base para aplicações Python que:
 ## Estrutura de Pastas
 
 ```
-├── .github/
-│   └── copilot-instructions.md
+├── scripts/ # Clients Scripts 
+│   └── __init__.py
 ├── src/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── s3_utils.py
 │   ├── db_utils.py
 │   └── main.py
-├── scripts/
-│   └── __init__.py
 ├── tests/
 │   ├── __init__.py
 │   └── test_sample.py
