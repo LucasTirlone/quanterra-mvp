@@ -1,9 +1,18 @@
 import pandas as pd
 
+from src.models import QualityReport
+
 REQUIRED_FIELDS = ["ChainId", "LastUpdate", "Latitude", "Longitude", "Status"]
 
+def generate_quality_report_and_save(df_collection_csv, collection_id, output_name):
+    rows = generate_quality_report(df_collection_csv)
+    result_df = pd.DataFrame(rows)
+    save_rows_in_database(rows, collection_id, output_name)
+    
+    return result_df.to_csv(output_name, index=False)
 
-def generate_quality_report(df_collection_csv, output_name):
+
+def generate_quality_report(df_collection_csv):
     rows = []
 
     for idx, row in df_collection_csv.iterrows():
@@ -19,8 +28,28 @@ def generate_quality_report(df_collection_csv, output_name):
             "BlankColumns": ", ".join(blank_cols)
         })
 
-    result_df = pd.DataFrame(rows)
-    return result_df.to_csv(output_name, index=False)
+    return rows
+
+
+def save_rows_in_database(session, rows, collection_id, file_name):
+    for row in rows:
+        quality_report = get_quality_report_object(row, collection_id, file_name)
+        QualityReport.upsert(session=session, data=quality_report)  
+
+
+def get_quality_report_object(row, collection_id, file_name):
+    quality_report_data = {
+        "file_name": file_name,
+        "collection_id": collection_id,
+        "row_number": row.get("RowNumber"),
+        "chain_id": row.get("ChainId"),
+        "scrape_date": row.get("LastUpdate"),
+        "valitation_result": row.get("ValitationResult"),
+        "invalid_columns": row.get("InvalidColumns", ""),
+        "blank_columns": row.get("BlankColumns", "")
+    }
+
+    return quality_report_data
 
 
 def validate_row(row):

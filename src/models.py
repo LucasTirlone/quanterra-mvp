@@ -232,6 +232,34 @@ class UsRegion(Base):
         return session.query(cls).filter(
             cls.zip == zip
         ).one_or_none()
+        
+
+class QualityReport(Base):
+    __tablename__ = 'quality_report'
+    id = Column(BigInteger, primary_key=True)
+    file_name = Column(Text, nullable=False)
+    collection_id = Column(Integer, nullable=False)
+    row_number = Column(Integer, nullable=False)
+    chain_id = Column(Text, nullable=False)
+    scrape_date = Column(Date, nullable=False)
+    valitation_result = Column(Text, nullable=False)
+    invalid_columns = Column(Text)
+    blank_columns = Column(Text)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint('file_name', 'scrape_date', name='quality_report_file_name_scrape_date_key'),
+    )
+
+    @classmethod
+    def upsert(cls, session: Session, data: dict):
+        stmt = insert(cls).values(**data)
+        stmt = stmt.on_conflict_do_update(
+            constraint='quality_report_file_name_scrape_date_key',
+            set_=data
+        )
+        session.execute(stmt)
+        session.commit()
 
 
 class FileEventLog(Base):
@@ -244,14 +272,14 @@ class FileEventLog(Base):
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     __table_args__ = (
-        UniqueConstraint('file_name', 'scrape_date', name='file_scrape_date_key'),
+        UniqueConstraint('file_name', 'scrape_date', name='file_event_log_file_name_scrape_date_key'),
     )
 
     @classmethod
     def upsert(cls, session: Session, data: dict):
         stmt = insert(cls).values(**data)
         stmt = stmt.on_conflict_do_update(
-            constraint='file_scrape_date_key',
+            constraint='file_event_log_file_name_scrape_date_key',
             set_=data
         )
         session.execute(stmt)

@@ -7,7 +7,7 @@ from service.db_service import get_db_session
 from service.report_service import generate_report_for_collection, generate_report_for_chain_scraper, direct_report
 from service.us_region_service import update_regions
 from service.location_service import update_location_status, close_location_by_limit
-from service.quality_report_service import generate_quality_report
+from service.quality_report_service import generate_quality_report_and_save
 from partner.chain_scrapes_api import get_output_rows
 
 logging.basicConfig(level=logging.INFO)
@@ -52,7 +52,7 @@ def generate_report_for_backfill(session, weeks=16):
 
 
 def generate_report(session, start_date, end_date):
-    generate_quality_report(df_collection_csv, f"CollectionId-{collection_id}-quality-report.csv")
+    generate_quality_report_and_save(df_collection_csv, collection_id, f"CollectionId-{collection_id}-quality-report.csv", end_date)
     generate_report_for_chain_scraper(session, collection_id, df_chain_scraper_csv, df_collection_csv)
     generate_report_for_collection(session, collection_id, start_date, end_date, df_chain_scraper_csv, df_collection_csv)
     
