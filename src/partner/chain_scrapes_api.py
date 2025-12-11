@@ -5,18 +5,24 @@ import csv
 
 from utils.api_cxy_util import get_cxy_chain_scrapes_params, get_cxy_chain_scrapes_url, get_cxy_chains_params, get_cxy_chains_url, get_cxy_collection_url, get_cxy_headers, get_cxy_scrape_locations_params, get_cxy_scrape_locations_url
 
+fieldnames = ['ChainId','ChainName','Date','Time','LocationCount','UsLocationCount']
 
-def get_output_rows(collection_id):
-    #try:
+
+def generate_chain_scrape_in_intervals(collection_id, start_date, end_date, folder, file_name):
+    chain_scrapes = get_output_rows(collection_id, start_date, end_date)
+    __save_csv(f"{folder}/{file_name}", chain_scrapes["rows"])
+
+
+def get_output_rows(collection_id, start_date, end_date):
+    try:
         metadata = __get_collection(collection_id)
-        print(f"Metadata: {metadata}")
         chain_query = __get_chain_query(metadata)
 
         chains = __get_all_chains(chain_query)
         logging.info(f"Found {len(chains)} chains in collection {collection_id}.")
 
-        output_rows, not_found_chain_id_count = __get_rows_from_chains(chains)
-        sorted_rows = sorted(output_rows, key=lambda r: (int(r["ChainId"]), r["date"]))
+        output_rows, not_found_chain_id_count = __get_rows_from_chains(chains, start_date, end_date)
+        sorted_rows = sorted(output_rows, key=lambda r: (int(r["ChainId"]), r["Date"]))
 
         logging.info(f"CSV saved: ({len(sorted_rows)} rows)")
         logging.info(f"Chains skipped due to missing ChainId: {not_found_chain_id_count}")
@@ -24,12 +30,12 @@ def get_output_rows(collection_id):
             "rows": sorted_rows,
             "not_found_chain_id_count": not_found_chain_id_count
         }
-    #except Exception as e:
-    #    logging.error(e)
-    #    return { "error": str(e)}
+    except Exception as e:
+        logging.error(e)
+        return { "error": str(e)}
 
 
-def __get_rows_from_chains(chains):
+def __get_rows_from_chains(chains, start_date, end_date):
     output_rows = []
     not_found_chain_id_count = 0
     
@@ -42,7 +48,7 @@ def __get_rows_from_chains(chains):
             continue
 
         logging.info(f"Fetching scrapes for chain {chain_id} ({chain_name})...")
-        scrapes = __get_all_chain_scrapes(chain_id)
+        scrapes = __get_all_chain_scrapes(chain_id, start_date, end_date)
         if not scrapes:
             logging.info(f"No scrapes found for chain {chain_id}.")
             continue
@@ -105,9 +111,9 @@ def __get_all_chains(chain_query):
     return __get_cxy_response_for_url_with_pages(url, "Chains", params=params)
 
 
-def __get_all_chain_scrapes(chain_id):
+def __get_all_chain_scrapes(chain_id, start_date, end_date):
     url = get_cxy_chain_scrapes_url()
-    params = get_cxy_chain_scrapes_params(chain_id)
+    params = get_cxy_chain_scrapes_params(chain_id, start_date, end_date)
     return __get_cxy_response_for_url_with_pages(url, "Chain Scrapes", params=params)
 
 
@@ -146,3 +152,14 @@ def __get_cxy_response_for_url(url, type, params=None, timeout=None):
         return response.json()
     except Exception as e:
         return RuntimeError(f"[{type}] Error parsing JSON for URL {url} with params {params}: Error: {e}")
+
+
+def __save_csv(file_name, rows):
+    try:
+        with open(file_name, mode='w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow(row)
+    except Exception as e:
+        logging.error(f"Error saving CSV file: {e}")

@@ -268,11 +268,11 @@ class FileEventLog(Base):
     file_name = Column(Text, nullable=False)
     collection_id = Column(Integer, nullable=False)
     status = Column(Text, nullable=False)
-    scrape_date = Column(Date, nullable=False)
+    run_date = Column(Date, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
     __table_args__ = (
-        UniqueConstraint('file_name', 'scrape_date', name='file_event_log_file_name_scrape_date_key'),
+        UniqueConstraint('file_name', 'run_date', name='file_event_log_file_name_run_date_key'),
     )
 
     @classmethod

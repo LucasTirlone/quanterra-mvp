@@ -2,10 +2,10 @@ import boto3
 import os
 from botocore.exceptions import ClientError
 
-secrets_envs = []
+secrets_envs = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "DB_USER", "DB_PASS"]
 
 """Recupera segredo do AWS Secrets Manager e atualiza as variáveis de ambiente."""
-def get_secrets_and_update_secrets():
+def update_secrets():
     client = _get_client()
 
     for secret_env in secrets_envs:

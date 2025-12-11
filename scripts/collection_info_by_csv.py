@@ -3,7 +3,7 @@ import json
 import csv
 
 # Configuration
-CXY_API_TOKEN = "11089$iYTkhu3tUiJ9ZKtmJ9BlUetugSprAnV1Gvd3s7iD3U5Ho1muWaaIy9Zic0GQsxtgmnv58IYkTT0SVSuXTZlnExAJhzADRI8NkgOYCHZ3DqigW42fzFURiwOyoKQZUYU0"
+CXY_API_TOKEN = "token_goes_here"  # CHANGE to your ChainXY API token
 BASE_URL = "https://location.chainxy.com"
 
 headers = {

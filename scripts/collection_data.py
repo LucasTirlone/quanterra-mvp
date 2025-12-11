@@ -115,7 +115,7 @@ def download_file(url: str, output_file: str = None):
     print(f"Attempting to save file to: {output_file}")
     
     # Debug: Print the actual URL being used for downloading
-    print(f"Download URL: {url}")
+    print(f"Download URL: {parsed_url}")
     
     # Try downloading the file
     with requests.get(url, stream=True) as r:
@@ -198,7 +198,7 @@ def generate_reports_in_intervals(CXY_API_TOKEN, collection_id, start_date, end_
 
 
 def main():
-    CXY_API_TOKEN = "11089$iYTkhu3tUiJ9ZKtmJ9BlUetugSprAnV1Gvd3s7iD3U5Ho1muWaaIy9Zic0GQsxtgmnv58IYkTT0SVSuXTZlnExAJhzADRI8NkgOYCHZ3DqigW42fzFURiwOyoKQZUYU0"
+    CXY_API_TOKEN = "token_goes_here"  # CHANGE to your ChainXY API token
     collection_id = 303288  # CHANGE the collection ID for EACH COLLECTION
 
     # Specify the start and end date

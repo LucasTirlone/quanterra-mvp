@@ -2,7 +2,8 @@ import json
 import os
 
 
-CXY_API_TOKEN = os.getenv('PARTNER_TOKEN')
+#CXY_API_TOKEN = os.getenv('PARTNER_TOKEN')
+CXY_API_TOKEN = "11089$iYTkhu3tUiJ9ZKtmJ9BlUetugSprAnV1Gvd3s7iD3U5Ho1muWaaIy9Zic0GQsxtgmnv58IYkTT0SVSuXTZlnExAJhzADRI8NkgOYCHZ3DqigW42fzFURiwOyoKQZUYU0"
 BASE_URL = "https://location.chainxy.com/api"
 
 
@@ -33,7 +34,7 @@ def get_cxy_chains_url():
     return f"{BASE_URL}/Chains"
 
 
-def get_cxy_chains_params(chain_query, page):
+def get_cxy_chains_params(chain_query, page=0):
     return {
         "Query": json.dumps(chain_query),
         "Page": page
@@ -44,10 +45,13 @@ def get_cxy_chain_scrapes_url():
     return f"{BASE_URL}/ChainScrapes"
 
 
-def get_cxy_chain_scrapes_params(chain_id, page=0):
+def get_cxy_chain_scrapes_params(chain_id, start_date, end_date, page=0):
     return {
         "fields": "Id,RunDate,Status,LocationCount",
-        "Query": json.dumps({"ChainId": chain_id}),
+        "Query": json.dumps({
+            "ChainId": chain_id,
+            "RunDate":  f"[{start_date},{end_date}]"
+        }),
         "OrderBy": "RunDate",  # ✅ Sort oldest to newest
         "Page": page
     }

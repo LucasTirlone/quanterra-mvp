@@ -5,18 +5,15 @@ import time
 
 from datetime import timedelta
 from utils.api_cxy_util import get_cxy_report_status_url, get_cxy_report_url, get_cxy_validate_api_key_url, get_cxy_headers
-from utils.data_util import format_as_date, format_timezone
-from utils.download_util import download_file
+from utils.data_util import format_as_date
+from utils.download_util import download_csv_file
 
 
 def generate_reports_weekly(collection_id, start_date):
     return generate_reports_in_intervals(collection_id, start_date, start_date + timedelta(weeks=1))
 
 
-def generate_reports_in_intervals(collection_id, start_date, end_date):
-    start_date = format_timezone(start_date)
-    end_date = format_timezone(end_date)
-        
+def generate_reports_in_intervals(collection_id, start_date, end_date, folder, file_name):        
     logging.info(f"Generating report from {start_date} to {end_date}...")
 
     changes_over_time_report_params = __get_changes_over_time_report_params(start_date, end_date)
@@ -24,7 +21,7 @@ def generate_reports_in_intervals(collection_id, start_date, end_date):
 
     logging.info(f"Download URL received: {report_file_url}")
 
-    downloaded_file = download_file(report_file_url)
+    downloaded_file = download_csv_file(report_file_url, folder, file_name)
         
     logging.info(f"Report downloaded and converted to CSV: {downloaded_file}")
     return downloaded_file

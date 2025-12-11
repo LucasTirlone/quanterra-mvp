@@ -1,6 +1,6 @@
 import pandas as pd
 
-from src.models import QualityReport
+from models import QualityReport
 
 REQUIRED_FIELDS = ["ChainId", "LastUpdate", "Latitude", "Longitude", "Status"]
 
