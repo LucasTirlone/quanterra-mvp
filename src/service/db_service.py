@@ -22,11 +22,11 @@ def get_db_session():
 
 
 def get_engine():
-    host: str = os.getenv("DB_HOST")
-    port: int = int(os.getenv("DB_PORT"))
-    name: str = os.getenv("DB_NAME")
-    user: str = os.getenv("DB_USER")
-    password: str = os.getenv("DB_PASS")
+    host: str = os.getenv("DB_HOST", "localhost")
+    port: int = int(os.getenv("DB_PORT", "5432"))
+    name: str = os.getenv("DB_NAME", "postgres")
+    user: str = os.getenv("DB_USER", "postgres")
+    password: str = os.getenv("DB_PASS", "pass")
     
     url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}"
     return create_engine(url)

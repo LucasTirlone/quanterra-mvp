@@ -12,6 +12,9 @@ from service.location_service import update_location_status, close_location_by_l
 from service.quality_report_service import generate_quality_report_and_save
 from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
 from partner.collection_api import generate_reports_in_intervals
+from service.center_service import update_centers_from_excel
+from service.landlord_service import upsert_landlords_from_excel
+from service.parent_chain_service import upsert_parent_chains_from_excel
 
 logging.basicConfig(level=logging.INFO)
 
@@ -20,7 +23,7 @@ chain_scraper_csv_path = './examples/chainscrapes_collection_303288.csv'
 collection_csv_path = './examples/US Pet_Stores_Collection 2025.05.20.csv'
 open_close_chain_csv = './examples/OpenClose.csv'
 
-df_us_region_csv = pd.read_csv(df_us_region_csv_path)
+
 df_chain_scraper_csv = pd.read_csv(chain_scraper_csv_path)
 df_collection_csv = pd.read_csv(collection_csv_path, low_memory=False)
 df_open_close_chain_csv = pd.read_csv(open_close_chain_csv)
@@ -35,13 +38,18 @@ def main():
     now = datetime.now().date()
     start_date = now - timedelta(weeks=1)
     end_date = now
-    
+
+    df_us_region_csv = pd.read_excel(f"./examples/Table - US Regions 2025.09.06.xlsx")
     #update_regions(session, df_us_region_csv)
-    #generate_report(session, start_date, end_date)
+
+    df_landlords_csv = pd.read_excel(f"./examples/Table - Landlords 2025.09.06.xlsx")
+    #upsert_landlords_from_excel(session, df_landlords_csv)
     
-    #direct_report(session, now - timedelta(weeks=40000), end_date)
-    #
-    #update_location_status(session, df_open_close_chain_csv)
+    df_parent_chains_csv = pd.read_excel(f"./examples/Table - Parent Chains 2025.09.06.xlsx")
+    #upsert_parent_chains_from_excel(session, df_parent_chains_csv)
+    
+    df_centers_csv = pd.read_excel(f"./examples/Table - Centers 2025.10.08.xlsx")
+    #update_centers_from_excel(session, df_centers_csv)
 
 
 # For now, it won't work because we need to be consuming directly from the API.

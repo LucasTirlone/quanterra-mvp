@@ -13,7 +13,10 @@ from service.db_service import get_db_session
 
 from datetime import datetime, timedelta
 
+from src.service.center_service import update_centers_from_excel
+from src.service.landlord_service import upsert_landlords_from_excel
 from src.service.location_service import update_location_status
+from src.service.parent_chain_service import upsert_parent_chains_from_excel
 from src.service.quality_report_service import generate_quality_report_and_save
 from src.service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
 from src.service.us_region_service import update_regions
@@ -56,25 +59,29 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 if not file:
                     continue        
                 
-                enriched_file_key = file_key.replace(".csv", "_enriched.csv")
-                quality_file_key = file_key.replace(".csv", "_quality_report.csv")
-                
-                file_processed = False
                 if file_key.startswith("Table - US Regions"):
-                    df_csv = pd.read_csv(file)
-                    update_regions(session, df_csv)
-                    file_processed = True
+                    df_xlsl = pd.read_excel(file)
+                    update_regions(session, df_xlsl)
+                elif file_key.startswith("Table - Parent Chains"):
+                    df_xlsl = pd.read_excel(file)
+                    upsert_parent_chains_from_excel(session, df_xlsl)
+                elif file_key.startswith("Table - Centers"):
+                    df_xlsl = pd.read_excel(file)
+                    update_centers_from_excel(session, df_xlsl)
+                elif file_key.startswith("Table - Landlords"):
+                    df_xlsl = pd.read_excel(file)
+                    upsert_landlords_from_excel(session, df_xlsl)
+                else:
+                    raise ValueError(f"Unrecognized auxiliary file key: {file_key}")
                     
-                if file_processed:
-                    S3CsvService.upload_csv(folder, enriched_file_key, s3_processed_bucket, "exports")
-                    S3CsvService.move_files(
-                        bucket_name=s3_raw_bucket,
-                        source_folder="curated/",
-                        destination_folder="curated-processed/",
-                        file_keys=[current_file_key],
-                        dry_run=False
-                    )
-                    S3CsvService.clean_local_files(folder, [file_key, enriched_file_key, quality_file_key])
+                S3CsvService.move_files(
+                    bucket_name=s3_raw_bucket,
+                    source_folder="curated/",
+                    destination_folder="curated-processed/",
+                    file_keys=[current_file_key],
+                    dry_run=False
+                )
+                S3CsvService.clean_local_files(folder, [file_key])
                 
                 create_file_event_log_for_uploaded(session, current_file_key, None, now)
         

@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, relationship
 from datetime import date
-from typing import List
+from typing import Any, Dict, List
 
 Base = declarative_base()
 
@@ -282,6 +282,169 @@ class FileEventLog(Base):
         stmt = stmt.on_conflict_do_update(
             constraint='file_event_log_file_name_scrape_date_key',
             set_=data
+        )
+        session.execute(stmt)
+        session.commit()
+
+
+class ParentChain(Base):
+    __tablename__ = "parent_chains"
+
+    chain_id = Column(Integer, primary_key=True)
+    chain_name = Column(Text, nullable=False)
+    chain_status = Column(Text)
+    url = Column(Text)
+
+    parent_chain_id = Column(Text)
+    parent_chain_name = Column(Text)
+    stock_ticker = Column(Text)
+
+    manual_change = Column(Boolean, default=False)
+    change_fields = Column(Text)
+    original_values = Column(Text)
+    change_reason = Column(Text)
+    modified_by = Column(Text)
+    modified_date = Column(Date)
+    archive_record = Column(Boolean, default=False)
+    upload_timestamp = Column(TIMESTAMP(timezone=True))
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    @classmethod
+    def upsert(cls, session: Session, data: Dict[str, Any]) -> None:
+        """
+        Upsert of chain_id (natural key).
+        """
+        stmt = insert(cls).values(**data)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["chain_id"],
+            set_=data,
+        )
+        session.execute(stmt)
+        session.commit()
+
+
+class Landlord(Base):
+    __tablename__ = "landlords"
+
+    landlord_id = Column(Text, primary_key=True)
+    landlord_name = Column(Text, nullable=False)
+
+    landlord_status = Column(Text)
+    url = Column(Text)
+    sic_code = Column(Text)
+    naics_code = Column(Text)
+    primary_category = Column(Text)
+    categories = Column(Text)
+    countries = Column(Text)
+    property_count = Column(Integer)
+
+    is_public = Column(Boolean, default=False)
+    stock_ticker = Column(Text)
+    property_sector = Column(Text)
+    property_subsector = Column(Text)
+    index_name = Column(Text)
+    region_coverage = Column(Text)
+    property_url = Column(Text)
+
+    archive_record = Column(Boolean, default=False)
+    manual_change = Column(Boolean, default=False)
+    change_fields = Column(Text)
+    original_values = Column(Text)
+    change_reason = Column(Text)
+    modified_by = Column(Text)
+    modified_date = Column(Date)
+    upload_timestamp = Column(TIMESTAMP(timezone=True))
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    @classmethod
+    def upsert(cls, session: Session, data: Dict[str, Any]) -> None:
+        """
+        Upsert by landlord_id.
+        """
+        stmt = insert(cls).values(**data)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["landlord_id"],
+            set_=data,
+        )
+        session.execute(stmt)
+        session.commit()
+
+
+class Center(Base):
+    __tablename__ = "centers"
+
+    site_id = Column(Text, primary_key=True)
+    title = Column(Text, nullable=False)
+
+    center_type = Column(Text)
+    format = Column(Text)
+
+    address = Column(Text)
+    address2 = Column(Text)
+    city = Column(Text)
+    region = Column(Text)
+    postal_code = Column(Text)
+    country = Column(Text)
+
+    latitude = Column(Float)
+    longitude = Column(Float)
+    gla = Column(Float)
+    units = Column(Integer)
+    year_opened = Column(Integer)
+    location_count = Column(Integer)
+    anchor_count = Column(Integer)
+    anchor_chains = Column(Text)
+
+    country_std = Column(Text)
+    state_std = Column(Text)
+    postal_code_std = Column(Text)
+
+    archive_record = Column(Boolean, default=False)
+    manual_change = Column(Boolean, default=False)
+    change_field = Column(Text)
+    original = Column(Text)
+    change_reason = Column(Text)
+    modified_by = Column(Text)
+    modified_date = Column(Date)
+    upload_timestamp = Column(TIMESTAMP(timezone=True))
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    @classmethod
+    def upsert(cls, session: Session, data: Dict[str, Any]) -> None:
+        stmt = insert(cls).values(**data)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["site_id"],
+            set_=data,
+        )
+        session.execute(stmt)
+        session.commit()
+        
+
+class CenterLandlord(Base):
+    __tablename__ = "center_landlords"
+
+    id = Column(BigInteger, primary_key=True)
+    site_id = Column(Text, nullable=False)
+    landlord_id = Column(Text, nullable=False)
+    ownership_pct = Column(Float)  # ex.: 100.0, 50.0, etc.
+
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint(
+            "site_id", "landlord_id", name="center_landlords_site_landlord_key"
+        ),
+    )
+
+    @classmethod
+    def upsert(cls, session: Session, data: Dict[str, Any]) -> None:
+        """
+        Upsert by (site_id, landlord_id).
+        """
+        stmt = insert(cls).values(**data)
+        stmt = stmt.on_conflict_do_update(
+            constraint="center_landlords_site_landlord_key",
+            set_=data,
         )
         session.execute(stmt)
         session.commit()
