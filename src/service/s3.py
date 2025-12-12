@@ -50,7 +50,7 @@ class S3CsvService:
 
     def upload_csv(
         self,
-        local_folder: str | Path,
+        local_folder: str,
         file_name: str,
         bucket_name: str,
         s3_folder: str,
@@ -100,7 +100,7 @@ class S3CsvService:
     
     def upload_csvs_and_clean(
         self,
-        local_folder: str | Path,
+        local_folder: str,
         s3_folder: str = "",
         recursive: bool = True,
         dry_run: bool = False,
@@ -372,7 +372,7 @@ class S3CsvService:
         self,
         file_name: str,
         s3_folder: str,
-        local_folder: str | Path,
+        local_folder: str,
         bucket_name: str,
     ) -> str:
         """
@@ -425,7 +425,7 @@ class S3CsvService:
 
     def clean_local_files(
         self,
-        local_folder: str | Path,
+        local_folder: str,
         file_list: list[str],
         dry_run: bool = False,
     ) -> dict:
