@@ -18,7 +18,7 @@ class SQSClient:
         queue_url: str,
         max_number: int = 10,
         wait_time_seconds: int = 20,
-        visibility_timeout: int | None = None,
+        visibility_timeout = None,
     ) -> list[dict]:
         params = {
             "QueueUrl": queue_url,
