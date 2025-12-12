@@ -42,14 +42,15 @@ class ReportGenerationConsumer(BaseSQSConsumer):
 
         try:
             folder = "./download/aux-files/"
+            s3_service = S3CsvService(bucket_name=s3_raw_bucket)
             
-            files_key = S3CsvService.list_csv_files("curated", bucket_name=s3_raw_bucket)
+            files_key = s3_service.list_csv_files("curated")
             if not files_key:
                 return
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = S3CsvService.download_csv_file(current_file_key, "curated", folder, bucket_name=s3_raw_bucket)
+                file = s3_service.download_csv_file(current_file_key, "curated", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
                 
@@ -68,19 +69,18 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 else:
                     raise ValueError(f"Unrecognized auxiliary file key: {file_key}")
                     
-                S3CsvService.move_files(
-                    bucket_name=s3_raw_bucket,
+                s3_service.move_files(
                     source_folder="curated/",
                     destination_folder="curated-processed/",
-                    file_keys=[current_file_key],
+                    file_list=[current_file_key],
                     dry_run=False
                 )
-                S3CsvService.clean_local_files(folder, [file_key])
+                s3_service.clean_local_files(folder, [file_key])
                 
                 create_file_event_log_for_uploaded(self.db_session, current_file_key, None, now)
         
         except Exception as error:
-            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "AUX_FILES_INGESTION", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "AUX_FILES_INGESTION", str(error))
     
     
     def __get_file_key_info(self, file_key):

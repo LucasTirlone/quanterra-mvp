@@ -45,9 +45,9 @@ class PartnerIntegrationConsumer(BaseSQSConsumer):
             generate_reports_in_intervals(collection_id, start_date, end_date, folder, collection_file_name)
             generate_chain_scrape_in_intervals(collection_id, start_date, end_date, folder, chain_scrape_file_name)
         
-            S3CsvService.upload_csvs_and_clean(
+            s3_service = S3CsvService(bucket_name=s3_raw_bucket)
+            s3_service.upload_csvs_and_clean(
                 s3_folder="raw/",
-                bucket_name=s3_raw_bucket,
                 local_folder=folder,
                 recursive=False,
                 dry_run=False
@@ -56,8 +56,8 @@ class PartnerIntegrationConsumer(BaseSQSConsumer):
             create_file_event_log_for_uploaded(self.db_session, collection_file_name, collection_id, now)
             create_file_event_log_for_uploaded(self.db_session, chain_scrape_file_name, collection_id, now)
         except Exception as error:
-            create_file_event_log_for_error(self.db_session, collection_file_name, collection_id, now, "UPLOAD", error)
-            create_file_event_log_for_error(self.db_session, chain_scrape_file_name, collection_id, now, "UPLOAD", error)
+            create_file_event_log_for_error(self.db_session, collection_file_name, collection_id, now, "UPLOAD", str(error))
+            create_file_event_log_for_error(self.db_session, chain_scrape_file_name, collection_id, now, "UPLOAD", str(error))
             
         close_location_by_limit(self.db_session, weeks=52)
             

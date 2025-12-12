@@ -38,14 +38,15 @@ class ReportGenerationConsumer(BaseSQSConsumer):
 
         try:
             folder = "./download/raw-for-process/"
+            s3_service = S3CsvService(bucket_name=s3_raw_bucket)
             
-            files_key = S3CsvService.list_csv_files("raw", bucket_name=s3_raw_bucket)
+            files_key = s3_service.list_csv_files("raw")
             if not files_key:
                 return
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = S3CsvService.download_csv_file(current_file_key, "raw", folder, bucket_name=s3_raw_bucket)
+                file = s3_service.download_csv_file(current_file_key, "raw", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
 
@@ -55,7 +56,7 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 quality_file_key = file_key.replace(".csv", "_quality_report.csv")
                 
                 if file_type == "chainscrapes":
-                    collection_file = S3CsvService.download_csv_file(current_file_key.replace("chainscrapes", "collection"), "raw", folder, bucket_name=s3_raw_bucket)
+                    collection_file = s3_service.download_csv_file(current_file_key.replace("chainscrapes", "collection"), "raw", folder, bucket_name=s3_raw_bucket)
                     if not collection_file:
                         raise ValueError(f"Collection file not found for chainscrapes file: {file_key}")
                     
@@ -66,24 +67,23 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                     df_collection_csv = pd.read_csv(file)
                     generate_report_for_collection(self.db_session, collection_id, f"{folder}{enriched_file_key}", start_scraper_date, end_scraper_date, df_collection_csv)
                     generate_quality_report_and_save(df_collection_csv, collection_id, f"{folder}{quality_file_key}")
-                    S3CsvService.upload_csv(folder, quality_file_key, s3_processed_bucket, "healthcheck")
+                    s3_service.upload_csv(folder, quality_file_key, s3_processed_bucket, "healthcheck")
                 else:
                     raise ValueError(f"Unknown file type: {file_type} in file key: {file_key}")
                     
-                S3CsvService.upload_csv(folder, enriched_file_key, s3_processed_bucket, "exports")
-                S3CsvService.move_files(
-                    bucket_name=s3_raw_bucket,
+                s3_service.move_files(
                     source_folder="raw/",
                     destination_folder="raw-processed/",
-                    file_keys=[current_file_key],
+                    file_list=[current_file_key],
                     dry_run=False
                 )
-                S3CsvService.clean_local_files(folder, [file_key, enriched_file_key, quality_file_key])
+                s3_service.upload_csv(folder, enriched_file_key, s3_processed_bucket, "exports")
+                s3_service.clean_local_files(folder, [file_key, enriched_file_key, quality_file_key])
                 
                 create_file_event_log_for_uploaded(self.db_session, current_file_key, collection_id, now)
         
         except Exception as error:
-            create_file_event_log_for_error(self.db_session, current_file_key, collection_id, now, "REPORT", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, collection_id, now, "REPORT", str(error))
     
     
     def __get_file_key_info(self, file_key):

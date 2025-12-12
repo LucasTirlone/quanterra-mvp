@@ -35,35 +35,35 @@ class ManualOpenCloseChainConsumer(BaseSQSConsumer):
 
         try:
             folder = "./download/manual-open-close-chain/"
+            s3_service = S3CsvService(bucket_name=s3_raw_bucket)
             
-            files_key = S3CsvService.list_csv_files("open-close-chain", bucket_name=s3_raw_bucket)
+            files_key = s3_service.list_csv_files("open-close-chain")
             if not files_key:
                 return
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = S3CsvService.download_csv_file(current_file_key, "open-close-chain", folder, bucket_name=s3_raw_bucket)
+                file = s3_service.download_csv_file(current_file_key, "open-close-chain", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
 
                 update_location_status(self.db_session, file)
                 
-                S3CsvService.clean_local_files(
+                s3_service.clean_local_files(
                     local_folder=folder,
                     file_list=[file_key],
                     dry_run=False
                 )
                 
-                S3CsvService.move_files(
-                    bucket_name=s3_raw_bucket,
+                s3_service.move_files(
                     source_folder="open-close-chain/",
                     destination_folder="open-close-chain-processed/",
-                    file_keys=[current_file_key],
+                    file_list=[current_file_key],
                     dry_run=False
                 )
                 
                 create_file_event_log_for_uploaded(self.db_session, current_file_key, None, now)
         
         except Exception as error:
-            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "MANUAL_OPEN_CLOSE_CHAIN", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "MANUAL_OPEN_CLOSE_CHAIN", str(error))
             
