@@ -6,7 +6,6 @@ import boto3
 from sqs.base_sqs_consumer import BaseSQSConsumer
 from service.s3 import S3CsvService
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
-from service.db_service import get_db_session
 
 from datetime import datetime, timedelta
 
@@ -21,7 +20,6 @@ logger = logging.getLogger(__name__)
 sqs = boto3.client("sqs", region_name="us-east-1")
 
 collection_id = 303288
-session = get_db_session()
 
 s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
@@ -50,7 +48,7 @@ class ManualOpenCloseChainConsumer(BaseSQSConsumer):
                 if not file:
                     continue        
 
-                update_location_status(session, file)
+                update_location_status(self.db_session, file)
                 
                 S3CsvService.clean_local_files(
                     local_folder=folder,
@@ -66,8 +64,8 @@ class ManualOpenCloseChainConsumer(BaseSQSConsumer):
                     dry_run=False
                 )
                 
-                create_file_event_log_for_uploaded(session, current_file_key, None, now)
+                create_file_event_log_for_uploaded(self.db_session, current_file_key, None, now)
         
         except Exception as error:
-            create_file_event_log_for_error(session, current_file_key, None, now, "MANUAL_OPEN_CLOSE_CHAIN", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "MANUAL_OPEN_CLOSE_CHAIN", error)
             

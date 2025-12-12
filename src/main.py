@@ -16,6 +16,7 @@ from typing import Type
 from sqs.sqs_client import SQSClient
 from sqs.base_sqs_consumer import BaseSQSConsumer
 from worker.worker_partner_integration import PartnerIntegrationConsumer
+from service.db_service import get_db_session
 
 logging.basicConfig(
     level=logging.INFO,
@@ -28,6 +29,7 @@ class MainApp:
 
     def __init__(self):
         self.sqs_client = SQSClient()
+        self.db_session = get_db_session()
         self.consumers: list[BaseSQSConsumer] = []
         self.threads: list[threading.Thread] = []
         self._stopping = False
@@ -35,9 +37,9 @@ class MainApp:
     def register_consumer(self, consumer_cls: Type[BaseSQSConsumer]):
         """
         Registers a consumer based on the class.
-        All use the same SQSClient (can change this if you want).
+        All use the same SQSClient and db_session (can change this if you want).
         """
-        consumer = consumer_cls(self.sqs_client)
+        consumer = consumer_cls(self.sqs_client, self.db_session)
         self.consumers.append(consumer)
         logger.info("Consumer registered: %s", consumer_cls.__name__)
 

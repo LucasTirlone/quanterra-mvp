@@ -7,7 +7,6 @@ from service.s3 import S3CsvService
 from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
 from partner.collection_api import generate_reports_in_intervals
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
-from service.db_service import get_db_session
 
 from datetime import datetime, timedelta
 
@@ -22,7 +21,6 @@ logger = logging.getLogger(__name__)
 sqs = boto3.client("sqs", region_name="us-east-1")
 
 collection_id = 303288
-session = get_db_session()
 
 s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 
@@ -57,11 +55,11 @@ class PartnerIntegrationConsumer(BaseSQSConsumer):
                 dry_run=False
             )
         
-            create_file_event_log_for_uploaded(session, collection_file_name, collection_id, now)
-            create_file_event_log_for_uploaded(session, chain_scrape_file_name, collection_id, now)
+            create_file_event_log_for_uploaded(self.db_session, collection_file_name, collection_id, now)
+            create_file_event_log_for_uploaded(self.db_session, chain_scrape_file_name, collection_id, now)
         except Exception as error:
-            create_file_event_log_for_error(session, collection_file_name, collection_id, now, "UPLOAD", error)
-            create_file_event_log_for_error(session, chain_scrape_file_name, collection_id, now, "UPLOAD", error)
+            create_file_event_log_for_error(self.db_session, collection_file_name, collection_id, now, "UPLOAD", error)
+            create_file_event_log_for_error(self.db_session, chain_scrape_file_name, collection_id, now, "UPLOAD", error)
             
-        close_location_by_limit(session, weeks=52)
+        close_location_by_limit(self.db_session, weeks=52)
             

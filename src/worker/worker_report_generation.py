@@ -6,14 +6,10 @@ import pandas as pd
 
 from sqs.base_sqs_consumer import BaseSQSConsumer
 from service.s3 import S3CsvService
-from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
-from partner.collection_api import generate_reports_in_intervals
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
-from service.db_service import get_db_session
 
 from datetime import datetime, timedelta
 
-from src.service.location_service import update_location_status
 from src.service.quality_report_service import generate_quality_report_and_save
 from src.service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
 
@@ -26,7 +22,6 @@ logger = logging.getLogger(__name__)
 sqs = boto3.client("sqs", region_name="us-east-1")
 
 collection_id = 303288
-session = get_db_session()
 
 s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
@@ -68,10 +63,10 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                     
                     df_chain_scraper_csv = pd.read_csv(file)
                     df_collection_csv = pd.read_csv(collection_file)
-                    generate_report_for_chain_scraper(session, collection_id, f"{folder}{enriched_file_key}", df_chain_scraper_csv, df_collection_csv)
+                    generate_report_for_chain_scraper(self.db_session, collection_id, f"{folder}{enriched_file_key}", df_chain_scraper_csv, df_collection_csv)
                 elif file_type == "collection":
                     df_collection_csv = pd.read_csv(file)
-                    generate_report_for_collection(session, collection_id, f"{folder}{enriched_file_key}", start_scraper_date, end_scraper_date, df_collection_csv)
+                    generate_report_for_collection(self.db_session, collection_id, f"{folder}{enriched_file_key}", start_scraper_date, end_scraper_date, df_collection_csv)
                     generate_quality_report_and_save(df_collection_csv, collection_id, f"{folder}{quality_file_key}")
                     S3CsvService.upload_csv(folder, quality_file_key, s3_processed_bucket, "healthcheck")
                 else:
@@ -87,10 +82,10 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 )
                 S3CsvService.clean_local_files(folder, [file_key, enriched_file_key, quality_file_key])
                 
-                create_file_event_log_for_uploaded(session, current_file_key, collection_id, now)
+                create_file_event_log_for_uploaded(self.db_session, current_file_key, collection_id, now)
         
         except Exception as error:
-            create_file_event_log_for_error(session, current_file_key, collection_id, now, "REPORT", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, collection_id, now, "REPORT", error)
     
     
     def __get_file_key_info(self, file_key):

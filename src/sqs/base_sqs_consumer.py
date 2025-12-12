@@ -23,8 +23,9 @@ class BaseSQSConsumer(ABC):
     wait_time_seconds: int = 20
     visibility_timeout = None
 
-    def __init__(self, sqs_client = None):
+    def __init__(self, sqs_client = None, db_session = None):
         self.sqs = sqs_client or SQSClient()
+        self.db_session = db_session
         self._stopped = False
 
     @abstractmethod

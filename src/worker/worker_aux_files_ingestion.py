@@ -9,7 +9,6 @@ from service.s3 import S3CsvService
 from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
 from partner.collection_api import generate_reports_in_intervals
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
-from service.db_service import get_db_session
 
 from datetime import datetime, timedelta
 
@@ -30,7 +29,6 @@ logger = logging.getLogger(__name__)
 sqs = boto3.client("sqs", region_name="us-east-1")
 
 collection_id = 303288
-session = get_db_session()
 
 s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
@@ -61,16 +59,16 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 
                 if file_key.startswith("Table - US Regions"):
                     df_xlsl = pd.read_excel(file)
-                    update_regions(session, df_xlsl)
+                    update_regions(self.db_session, df_xlsl)
                 elif file_key.startswith("Table - Parent Chains"):
                     df_xlsl = pd.read_excel(file)
-                    upsert_parent_chains_from_excel(session, df_xlsl)
+                    upsert_parent_chains_from_excel(self.db_session, df_xlsl)
                 elif file_key.startswith("Table - Centers"):
                     df_xlsl = pd.read_excel(file)
-                    update_centers_from_excel(session, df_xlsl)
+                    update_centers_from_excel(self.db_session, df_xlsl)
                 elif file_key.startswith("Table - Landlords"):
                     df_xlsl = pd.read_excel(file)
-                    upsert_landlords_from_excel(session, df_xlsl)
+                    upsert_landlords_from_excel(self.db_session, df_xlsl)
                 else:
                     raise ValueError(f"Unrecognized auxiliary file key: {file_key}")
                     
@@ -83,10 +81,10 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 )
                 S3CsvService.clean_local_files(folder, [file_key])
                 
-                create_file_event_log_for_uploaded(session, current_file_key, None, now)
+                create_file_event_log_for_uploaded(self.db_session, current_file_key, None, now)
         
         except Exception as error:
-            create_file_event_log_for_error(session, current_file_key, None, now, "AUX_FILES_INGESTION", error)
+            create_file_event_log_for_error(self.db_session, current_file_key, None, now, "AUX_FILES_INGESTION", error)
     
     
     def __get_file_key_info(self, file_key):
