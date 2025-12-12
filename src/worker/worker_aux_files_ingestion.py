@@ -32,7 +32,7 @@ s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
 
 
-class ReportGenerationConsumer(BaseSQSConsumer):
+class AuxFilesIngestionConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_AUX_FILES")
     queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 

@@ -280,7 +280,7 @@ class FileEventLog(Base):
     def upsert(cls, session: Session, data: dict):
         stmt = insert(cls).values(**data)
         stmt = stmt.on_conflict_do_update(
-            constraint='file_event_log_file_name_scrape_date_key',
+            constraint='file_event_log_file_name_run_date_key',
             set_=data
         )
         session.execute(stmt)

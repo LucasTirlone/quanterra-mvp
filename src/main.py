@@ -6,7 +6,8 @@ from secret_manager import update_secrets
 #update_secrets()
 
 from worker.worker_manual_chain_open_close import ManualOpenCloseChainConsumer
-from worker.worker_aux_files_ingestion import ReportGenerationConsumer
+from worker.worker_aux_files_ingestion import AuxFilesIngestionConsumer
+from worker.worker_report_generation import ReportGenerationConsumer
 
 import logging
 import signal
@@ -86,6 +87,7 @@ def main():
     app.register_consumer(PartnerIntegrationConsumer)
     app.register_consumer(ReportGenerationConsumer)
     app.register_consumer(ManualOpenCloseChainConsumer)
+    app.register_consumer(AuxFilesIngestionConsumer)
 
     # Configure signals for graceful shutdown
     signal.signal(signal.SIGINT, app.stop_all)
