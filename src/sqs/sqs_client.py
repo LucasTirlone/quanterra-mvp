@@ -37,7 +37,7 @@ class SQSClient:
             QueueUrl=queue_url, ReceiptHandle=receipt_handle
         )
 
-    def send_message(self, queue_url: str, body: str, message_attributes: dict | None = None):
+    def send_message(self, queue_url: str, body: str, message_attributes = None):
         params = {
             "QueueUrl": queue_url,
             "MessageBody": body,
