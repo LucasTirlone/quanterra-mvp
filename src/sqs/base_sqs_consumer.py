@@ -31,8 +31,8 @@ class BaseSQSConsumer(ABC):
     def handle(
         self,
         payload: Dict[str, Any],
-        message_attributes: Dict[str, Any] | None,
         raw_message: Dict[str, Any],
+        message_attributes = None,
     ):
         """
         Business logic to be executed for each message.
