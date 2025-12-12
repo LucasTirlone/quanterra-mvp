@@ -22,11 +22,11 @@ def get_db_session():
 
 
 def get_engine():
-    host: str = os.getenv("DB_HOST", "localhost")
+    host: str = os.getenv("DB_HOST", "http://quanterra-mvp-pg.cmdlmyjni8jj.us-east-1.rds.amazonaws.com/")
     port: int = int(os.getenv("DB_PORT", "5432"))
-    name: str = os.getenv("DB_NAME", "postgres")
-    user: str = os.getenv("DB_USER", "postgres")
-    password: str = os.getenv("DB_PASS", "pass")
+    name: str = os.getenv("DB_NAME", "quanterra-mvp")
+    user: str = os.getenv("DB_USER", "mvpadmin")
+    password: str = os.getenv("DB_PASS", "LtSUv2XS7JkhcjFzWOA7KQd9")
     
     url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}"
     return create_engine(url)
