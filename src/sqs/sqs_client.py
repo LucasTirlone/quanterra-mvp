@@ -6,9 +6,8 @@ logger = logging.getLogger(__name__)
 
 
 class SQSClient:
-    def __init__(self, region_name: str | None = None):
-        self._region = region_name or "us-east-1"
-        self._client = boto3.client("sqs", region_name=self._region)
+    def __init__(self, region_name = "us-east-1"):
+        self._client = boto3.client("sqs", region_name=region_name)
 
     @property
     def client(self):
