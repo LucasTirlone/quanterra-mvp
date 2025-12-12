@@ -18,7 +18,7 @@ def get_db_session():
 
 
 def get_engine():
-    host: str = "http://quanterra-mvp-pg.cmdlmyjni8jj.us-east-1.rds.amazonaws.com/" #os.getenv("DB_HOST")
+    host: str = "quanterra-mvp-pg.cmdlmyjni8jj.us-east-1.rds.amazonaws.com" #os.getenv("DB_HOST")
     port: int = int("5432") #int(os.getenv("DB_PORT"))
     name: str = "quanterra-mvp" #os.getenv("DB_NAME")
     user: str = "mvpadmin" #os.getenv("DB_USER")
