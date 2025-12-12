@@ -21,9 +21,9 @@ class BaseSQSConsumer(ABC):
     queue_url: str
     max_number_of_messages: int = 10
     wait_time_seconds: int = 20
-    visibility_timeout: int | None = None
+    visibility_timeout = None
 
-    def __init__(self, sqs_client: SQSClient | None = None):
+    def __init__(self, sqs_client = None):
         self.sqs = sqs_client or SQSClient()
         self._stopped = False
 
