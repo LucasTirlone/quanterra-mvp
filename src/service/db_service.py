@@ -9,15 +9,11 @@ from models import Base, Location, LocationEvent, ChainScrape
 
 logger = logging.getLogger(__name__)
 
-session = None
-
 def get_db_session():
-    global session
-    if session is None:
-        engine = get_engine()
-        create_database_schema_if_not_exists(engine)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+    engine = get_engine()
+    create_database_schema_if_not_exists(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
     return session
 
 
