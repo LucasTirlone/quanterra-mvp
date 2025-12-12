@@ -27,7 +27,7 @@ s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 
 class PartnerIntegrationConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_PARTNER_INTEGRATION")
-    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         now = datetime.now().date()

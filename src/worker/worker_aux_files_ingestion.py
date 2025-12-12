@@ -33,8 +33,8 @@ s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
 
 
 class ReportGenerationConsumer(BaseSQSConsumer):
-    queue_name = os.getenv("SQS_QUEUE_FILE_INGESTION")
-    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
+    queue_name = os.getenv("SQS_QUEUE_AUX_FILES")
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         current_file_key = ""

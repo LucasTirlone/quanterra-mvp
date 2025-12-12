@@ -27,7 +27,7 @@ s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
 
 class ManualOpenCloseChainConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_MANUAL_OPEN_CLOSE_CHAIN")
-    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         current_file_key = ""
