@@ -2,15 +2,21 @@ import boto3
 import os
 from botocore.exceptions import ClientError
 
-secrets_envs = ["AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "DB_USER", "DB_PASS"]
+secrets_envs = {
+    "PARTNER_TOKEN": "quanterra/prod/partner/api_key",
+    "DB_HOST": "host",
+    "DB_PORT": "port",
+    "DB_NAME": "db",
+    "DB_USER": "user",
+    "DB_PASS": "password"
+}
 
-"""Recupera segredo do AWS Secrets Manager e atualiza as variáveis de ambiente."""
+"""Update secrets of AWS Secrets Manager in local."""
 def update_secrets():
     client = _get_client()
 
-    for secret_env in secrets_envs:
-        os.environ[secret_env] = _get_secret(client, secret_env)
-    
+    for env_var, secret_name in secrets_envs.items():
+        os.environ[env_var] = _get_secret(client, secret_name)
 
 def _get_secret(client, secret_name):
     try:

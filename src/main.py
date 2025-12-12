@@ -1,8 +1,11 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from src.secret_manager import update_secrets
+from secret_manager import update_secrets
 update_secrets()
+
+from worker.worker_manual_chain_open_close import ManualOpenCloseChainConsumer
+from worker.worker_report_generation import ReportGenerationConsumer
 
 import logging
 import signal
@@ -78,6 +81,8 @@ def main():
     # Here you decide which queues/micro-services this process will start.
     # Just register more consumers as you create them.
     app.register_consumer(PartnerIntegrationConsumer)
+    app.register_consumer(ReportGenerationConsumer)
+    app.register_consumer(ManualOpenCloseChainConsumer)
 
     # Configure signals for graceful shutdown
     signal.signal(signal.SIGINT, app.stop_all)

@@ -10,7 +10,10 @@ fieldnames = ['ChainId','ChainName','Date','Time','LocationCount','UsLocationCou
 
 def generate_chain_scrape_in_intervals(collection_id, start_date, end_date, folder, file_name):
     chain_scrapes = get_output_rows(collection_id, start_date, end_date)
-    __save_csv(f"{folder}/{file_name}", chain_scrapes["rows"])
+    if "error" in chain_scrapes:
+        raise RuntimeError(f"Error generating chain scrapes: {chain_scrapes['error']}")
+    
+    __save_csv(f"{folder}/{file_name}", chain_scrapes["rows"]),
 
 
 def get_output_rows(collection_id, start_date, end_date):

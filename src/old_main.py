@@ -40,7 +40,7 @@ def main():
     #generate_report(session, start_date, end_date)
     
     #direct_report(session, now - timedelta(weeks=40000), end_date)
-    #close_location_by_limit(session, weeks=52)
+    #
     #update_location_status(session, df_open_close_chain_csv)
 
 
@@ -58,7 +58,7 @@ def generate_report_for_backfill(session, weeks=16):
 def generate_report(session, start_date, end_date):
     generate_quality_report_and_save(df_collection_csv, collection_id, f"CollectionId-{collection_id}-quality-report.csv", end_date)
     generate_report_for_chain_scraper(session, collection_id, df_chain_scraper_csv, df_collection_csv)
-    generate_report_for_collection(session, collection_id, start_date, end_date, df_chain_scraper_csv, df_collection_csv)
+    generate_report_for_collection(session, collection_id, start_date, end_date, df_collection_csv)
     
     
 def generate_direct_report_for_month(session):

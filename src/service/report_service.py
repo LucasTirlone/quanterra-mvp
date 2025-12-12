@@ -10,7 +10,7 @@ from service.us_region_service import get_us_region_by_zip
 logging.basicConfig(level=logging.INFO)
 
 
-def generate_report_for_chain_scraper(db_session, collection_id, df_chain_scraper_csv, df_collection_csv):
+def generate_report_for_chain_scraper(db_session, collection_id, file_key, df_chain_scraper_csv, df_collection_csv):
     logging.info(f"Generate chain_scraper report for collection_id {collection_id}")
     df_chain_scraper_sorted = df_chain_scraper_csv.sort_values(by=['ChainId', 'Date', 'Time'])
 
@@ -44,10 +44,10 @@ def generate_report_for_chain_scraper(db_session, collection_id, df_chain_scrape
             
         outputs_chain_scraper.append(row)
                 
-    return create_output_csv_file(outputs_chain_scraper, f"CollectionId-{collection_id}-ChainScraper.csv")
+    return create_output_csv_file(outputs_chain_scraper, file_key)
 
 
-def generate_report_for_collection(db_session, collection_id, start_scraper_date, end_scraper_date, df_chain_scraper_csv, df_collection_csv):
+def generate_report_for_collection(db_session, collection_id, file_key, start_scraper_date, end_scraper_date, df_collection_csv):
     logging.info(f"Generate report for collection_id {collection_id} between {start_scraper_date} and {end_scraper_date}")
     df_collection_csv = df_collection_csv.sort_values(by=['ChainId', 'LastUpdate', 'Status', 'Longitude', 'Latitude'])
     
@@ -85,7 +85,7 @@ def generate_report_for_collection(db_session, collection_id, start_scraper_date
         except Exception as e:
             error_count += 1
         
-    return create_output_csv_file(outputs_collection.values(), f"CollectionId-{collection_id}-enriched.csv")
+    return create_output_csv_file(outputs_collection.values(), file_key)
 
 
 def generate_output_key(event):

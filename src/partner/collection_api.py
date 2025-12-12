@@ -13,18 +13,21 @@ def generate_reports_weekly(collection_id, start_date):
     return generate_reports_in_intervals(collection_id, start_date, start_date + timedelta(weeks=1))
 
 
-def generate_reports_in_intervals(collection_id, start_date, end_date, folder, file_name):        
-    logging.info(f"Generating report from {start_date} to {end_date}...")
+def generate_reports_in_intervals(collection_id, start_date, end_date, folder, file_name):
+    try:       
+        logging.info(f"Generating report from {start_date} to {end_date}...")
 
-    changes_over_time_report_params = __get_changes_over_time_report_params(start_date, end_date)
-    report_file_url = download_changes_over_time_report_url(collection_id, changes_over_time_report_params)
+        changes_over_time_report_params = __get_changes_over_time_report_params(start_date, end_date)
+        report_file_url = download_changes_over_time_report_url(collection_id, changes_over_time_report_params)
 
-    logging.info(f"Download URL received: {report_file_url}")
+        logging.info(f"Download URL received: {report_file_url}")
 
-    downloaded_file = download_csv_file(report_file_url, folder, file_name)
+        downloaded_file = download_csv_file(report_file_url, folder, file_name)
         
-    logging.info(f"Report downloaded and converted to CSV: {downloaded_file}")
-    return downloaded_file
+        logging.info(f"Report downloaded and converted to CSV: {downloaded_file}")
+        return downloaded_file
+    except Exception as e:
+        raise RuntimeError(f"Error generating reports: {e}")
 
 
 def download_changes_over_time_report_url(collection_id, report_params):
