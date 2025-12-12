@@ -30,6 +30,8 @@ class ManualOpenCloseChainConsumer(BaseSQSConsumer):
 
     resp = sqs.get_queue_url(QueueName=queue_name)
     queue_url = resp["QueueUrl"]
+    print("Resp:", resp)
+    print("Queue URL:", queue_url)
 
     def handle(self, payload, raw_message, message_attributes ):
         current_file_key = ""
