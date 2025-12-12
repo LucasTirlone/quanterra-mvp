@@ -10,8 +10,8 @@ from service.file_event_service import create_file_event_log_for_uploaded, creat
 
 from datetime import datetime, timedelta
 
-from src.service.quality_report_service import generate_quality_report_and_save
-from src.service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
+from service.quality_report_service import generate_quality_report_and_save
+from service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,9 +29,7 @@ s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
 
 class ReportGenerationConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_FILE_INGESTION")
-    
-    resp = sqs.get_queue_url(QueueName=queue_name)
-    queue_url = resp["QueueUrl"]
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         current_file_key = ""

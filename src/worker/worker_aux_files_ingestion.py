@@ -6,19 +6,17 @@ import pandas as pd
 
 from sqs.base_sqs_consumer import BaseSQSConsumer
 from service.s3 import S3CsvService
-from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
-from partner.collection_api import generate_reports_in_intervals
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
 
 from datetime import datetime, timedelta
 
-from src.service.center_service import update_centers_from_excel
-from src.service.landlord_service import upsert_landlords_from_excel
-from src.service.location_service import update_location_status
-from src.service.parent_chain_service import upsert_parent_chains_from_excel
-from src.service.quality_report_service import generate_quality_report_and_save
-from src.service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
-from src.service.us_region_service import update_regions
+from service.center_service import update_centers_from_excel
+from service.landlord_service import upsert_landlords_from_excel
+from service.location_service import update_location_status
+from service.parent_chain_service import upsert_parent_chains_from_excel
+from service.quality_report_service import generate_quality_report_and_save
+from service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
+from service.us_region_service import update_regions
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,9 +34,7 @@ s3_processed_bucket = os.getenv("S3_PROCESSED_BUCKET_NAME")
 
 class ReportGenerationConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_FILE_INGESTION")
-    
-    resp = sqs.get_queue_url(QueueName=queue_name)
-    queue_url = resp["QueueUrl"]
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         current_file_key = ""

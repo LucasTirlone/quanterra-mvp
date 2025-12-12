@@ -10,7 +10,7 @@ from service.file_event_service import create_file_event_log_for_uploaded, creat
 
 from datetime import datetime, timedelta
 
-from src.service.location_service import close_location_by_limit
+from service.location_service import close_location_by_limit
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,9 +27,7 @@ s3_raw_bucket = os.getenv("S3_RAW_BUCKET_NAME")
 
 class PartnerIntegrationConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_PARTNER_INTEGRATION")
-
-    resp = sqs.get_queue_url(QueueName=queue_name)
-    queue_url = resp["QueueUrl"]
+    queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/quan-prod-chain-files/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
         now = datetime.now().date()
