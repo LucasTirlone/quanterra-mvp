@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from src.service.location_service import update_location_status
 from src.service.quality_report_service import generate_quality_report_and_save
 from src.service.report_service import generate_report_for_chain_scraper, generate_report_for_collection
+from src.service.us_region_service import update_regions
 
 logging.basicConfig(
     level=logging.INFO,
@@ -43,46 +44,33 @@ class ReportGenerationConsumer(BaseSQSConsumer):
         now = datetime.now().date()
 
         try:
-            folder = "./download/raw-for-process/"
+            folder = "./download/aux-files/"
             
-            files_key = S3CsvService.list_csv_files("raw", bucket_name=s3_raw_bucket)
+            files_key = S3CsvService.list_csv_files("curated", bucket_name=s3_raw_bucket)
             if not files_key:
                 return
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = S3CsvService.download_csv_file(current_file_key, "raw", folder, bucket_name=s3_raw_bucket)
+                file = S3CsvService.download_csv_file(current_file_key, "curated", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
-
-                file_type, collection_id, start_scraper_date, end_scraper_date = self.__get_file_key_info(file_key)
                 
                 enriched_file_key = file_key.replace(".csv", "_enriched.csv")
                 quality_file_key = file_key.replace(".csv", "_quality_report.csv")
                 
                 file_processed = False
-                if file_type == "chainscrapes":
-                    collection_file = S3CsvService.download_csv_file(current_file_key.replace("chainscrapes", "collection"), "raw", folder, bucket_name=s3_raw_bucket)
-                    if not collection_file:
-                        raise ValueError(f"Collection file not found for chainscrapes file: {file_key}")
-                    
-                    df_chain_scraper_csv = pd.read_csv(file)
-                    df_collection_csv = pd.read_csv(collection_file)
-                    generate_report_for_chain_scraper(session, collection_id, f"{folder}{enriched_file_key}", df_chain_scraper_csv, df_collection_csv)
-                    file_processed = True
-                elif file_type == "collection":
-                    df_collection_csv = pd.read_csv(file)
-                    generate_report_for_collection(session, collection_id, f"{folder}{enriched_file_key}", start_scraper_date, end_scraper_date, df_collection_csv)
-                    generate_quality_report_and_save(df_collection_csv, collection_id, f"{folder}{quality_file_key}")
-                    S3CsvService.upload_csv(folder, quality_file_key, s3_processed_bucket, "healthcheck")
+                if file_key.startswith("Table - US Regions"):
+                    df_csv = pd.read_csv(file)
+                    update_regions(session, df_csv)
                     file_processed = True
                     
                 if file_processed:
                     S3CsvService.upload_csv(folder, enriched_file_key, s3_processed_bucket, "exports")
                     S3CsvService.move_files(
                         bucket_name=s3_raw_bucket,
-                        source_folder="raw/",
-                        destination_folder="raw-processed/",
+                        source_folder="curated/",
+                        destination_folder="curated-processed/",
                         file_keys=[current_file_key],
                         dry_run=False
                     )
@@ -91,7 +79,7 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 create_file_event_log_for_uploaded(session, current_file_key, None, now)
         
         except Exception as error:
-            create_file_event_log_for_error(session, current_file_key, None, now, "REPORT", error)
+            create_file_event_log_for_error(session, current_file_key, None, now, "AUX_FILES_INGESTION", error)
     
     
     def __get_file_key_info(self, file_key):

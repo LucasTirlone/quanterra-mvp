@@ -5,7 +5,7 @@ from secret_manager import update_secrets
 update_secrets()
 
 from worker.worker_manual_chain_open_close import ManualOpenCloseChainConsumer
-from worker.worker_report_generation import ReportGenerationConsumer
+from src.worker.worker_aux_files_ingestion import ReportGenerationConsumer
 
 import logging
 import signal

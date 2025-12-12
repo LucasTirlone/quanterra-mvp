@@ -370,52 +370,53 @@ class S3CsvService:
 
     def download_csv_file(
         self,
-        s3_key: str,
-        local_path: str | Path = None,
-        bucket_name: str = None,
-    ) -> bytes | str:
+        file_name: str,
+        s3_folder: str,
+        local_folder: str | Path,
+        bucket_name: str,
+    ) -> str:
         """
-        Download a CSV file from S3 by its key.
+        Download a CSV file from S3 to a local folder.
 
-        :param s3_key: Full S3 key/path of the file (e.g., "processed/file1.csv").
-        :param local_path: Optional local path to save the file. If None, returns file content as bytes.
-                          If provided, saves the file locally and returns the local path.
-        :param bucket_name: Specific bucket to use. If None, uses the bucket defined in __init__.
-        :return: If local_path is None, returns file content as bytes.
-                If local_path is provided, returns the local file path as string.
+        :param file_name: Name of the CSV file to download.
+        :param s3_folder: Folder path inside the S3 bucket (e.g., "processed/").
+        :param local_folder: Local folder path where the file will be saved.
+        :param bucket_name: Source bucket name.
+        :return: Path to the downloaded file as string.
         """
-        # Use provided bucket or default to self.bucket_name
-        target_bucket = bucket_name or self.bucket_name
+        local_folder = Path(local_folder).resolve()
         
-        if not s3_key:
-            raise ValueError("s3_key cannot be empty")
+        if not file_name:
+            raise ValueError("file_name cannot be empty")
+        if not s3_folder:
+            raise ValueError("s3_folder cannot be empty")
+        if not bucket_name:
+            raise ValueError("bucket_name cannot be empty")
         
-        logger.info(f"Downloading CSV file from s3://{target_bucket}/{s3_key}")
+        # Normalize s3_folder (remove leading "/" and ensure trailing "/" for prefix)
+        s3_folder = s3_folder.strip("/")
+        if s3_folder and not s3_folder.endswith("/"):
+            s3_folder += "/"
+        
+        # Build S3 key
+        s3_key = f"{s3_folder}{file_name}"
+        
+        # Create local folder if it doesn't exist
+        local_folder.mkdir(parents=True, exist_ok=True)
+        local_path = local_folder / file_name
+        
+        logger.info(f"Downloading CSV file from s3://{bucket_name}/{s3_key}")
+        logger.info(f"Saving to: {local_path}")
         
         try:
-            if local_path:
-                # Save to local file
-                local_path = Path(local_path)
-                local_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                self.s3.download_file(
-                    Bucket=target_bucket,
-                    Key=s3_key,
-                    Filename=str(local_path),
-                )
-                
-                logger.info(f"File saved to: {local_path}")
-                return str(local_path)
-            else:
-                # Return file content as bytes
-                response = self.s3.get_object(
-                    Bucket=target_bucket,
-                    Key=s3_key,
-                )
-                
-                file_content = response["Body"].read()
-                logger.info(f"File downloaded to memory ({len(file_content)} bytes)")
-                return file_content
+            self.s3.download_file(
+                Bucket=bucket_name,
+                Key=s3_key,
+                Filename=str(local_path),
+            )
+            
+            logger.info(f"✓ File successfully downloaded to: {local_path}")
+            return str(local_path)
                 
         except ClientError as e:
             logger.error(f"Error downloading file from S3: {e}")

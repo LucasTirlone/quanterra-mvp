@@ -48,7 +48,7 @@ class ManualOpenCloseChainConsumer(BaseSQSConsumer):
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = S3CsvService.download_csv_file(current_file_key, folder, bucket_name=s3_raw_bucket)
+                file = S3CsvService.download_csv_file(current_file_key, "open-close-chain", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
 
