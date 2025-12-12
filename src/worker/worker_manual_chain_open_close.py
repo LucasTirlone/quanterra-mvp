@@ -5,8 +5,6 @@ import boto3
 
 from sqs.base_sqs_consumer import BaseSQSConsumer
 from service.s3 import S3CsvService
-from partner.chain_scrapes_api import generate_chain_scrape_in_intervals
-from partner.collection_api import generate_reports_in_intervals
 from service.file_event_service import create_file_event_log_for_uploaded, create_file_event_log_for_error
 from service.db_service import get_db_session
 
