@@ -33,7 +33,7 @@ class PartnerIntegrationConsumer(BaseSQSConsumer):
     resp = sqs.get_queue_url(QueueName=queue_name)
     queue_url = resp["QueueUrl"]
 
-    def handle(self, payload, message_attributes, raw_message):
+    def handle(self, payload, raw_message, message_attributes ):
         now = datetime.now().date()
         collection_file_name = ""
         chain_scrape_file_name = ""

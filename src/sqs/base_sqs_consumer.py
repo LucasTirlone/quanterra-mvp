@@ -15,7 +15,7 @@ class BaseSQSConsumer(ABC):
 
     Each subclass must define:
       - queue_url (str)
-      - handle(payload, message_attributes, raw_message)
+      - handle(payload, raw_message, message_attributes )
     """
 
     queue_url: str
