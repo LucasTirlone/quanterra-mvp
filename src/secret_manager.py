@@ -1,6 +1,7 @@
 import boto3
 import os
 from botocore.exceptions import ClientError
+import json
 
 DB_SECRET_ID = os.getenv("DB_SECRET_ID", "/mvp/db/credentials")
 
@@ -15,7 +16,6 @@ def update_secrets():
     for env_var, secret_name in secrets_envs.items():
         os.environ[env_var] = _get_secret(client, secret_name)
 
-    import json
     raw = _get_secret(client, DB_SECRET_ID)
     cfg = json.loads(raw)
     os.environ["DB_HOST"] = cfg["host"]
