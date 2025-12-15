@@ -32,6 +32,9 @@ class ReportGenerationConsumer(BaseSQSConsumer):
     queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 
     def handle(self, payload, raw_message, message_attributes ):
+        if isinstance(payload, dict) and payload.get("Event") == "s3:TestEvent":
+            logger.info("Ignoring S3 TestEvent message.")
+            return
         current_file_key = ""
         collection_id = None
         now = datetime.now().date()
@@ -46,7 +49,8 @@ class ReportGenerationConsumer(BaseSQSConsumer):
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = s3_service.download_csv_file(current_file_key, "raw", folder, bucket_name=s3_raw_bucket)
+                base_name = current_file_key.split("/")[-1]
+                file = s3_service.download_csv_file(base_name, "raw", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
 
@@ -74,7 +78,7 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 s3_service.move_files(
                     source_folder="raw/",
                     destination_folder="raw-processed/",
-                    file_list=[current_file_key],
+                    file_list=[base_name],
                     dry_run=False
                 )
                 s3_service.upload_csv(folder, enriched_file_key, s3_processed_bucket, "exports")
@@ -83,9 +87,11 @@ class ReportGenerationConsumer(BaseSQSConsumer):
                 create_file_event_log_for_uploaded(self.db_session, current_file_key, collection_id, now)
         
         except Exception as error:
+            try:
+                self.db_session.rollback()
+            except Exception:
+                pass
             create_file_event_log_for_error(self.db_session, current_file_key, collection_id, now, "REPORT", str(error))
-    
-    
     def __get_file_key_info(self, file_key):
         file_key_parts = file_key.replace(".csv", "").split("_")
         
