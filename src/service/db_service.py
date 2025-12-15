@@ -18,14 +18,18 @@ def get_db_session():
 
 
 def get_engine():
-    host: str = "quanterra-mvp-pg.cmdlmyjni8jj.us-east-1.rds.amazonaws.com" #os.getenv("DB_HOST")
-    port: int = int("5432") #int(os.getenv("DB_PORT"))
-    name: str = "quanterra-mvp" #os.getenv("DB_NAME")
-    user: str = "mvpadmin" #os.getenv("DB_USER")
-    password: str = "LtSUv2XS7JkhcjFzWOA7KQd9" #os.getenv("DB_PASS")
+    host = os.getenv("DB_HOST")
+    port = os.getenv("DB_PORT", "5432")
+    name = os.getenv("DB_NAME", "quanterra-mvp")
+    user = os.getenv("DB_USER")
+    password = os.getenv("DB_PASS")
+    sslmode = os.getenv("DB_SSLMODE", "require")  # RDS exige SSL
+
+    if not host or not user or not password:
+        raise RuntimeError("Missing DB env vars: DB_HOST/DB_USER/DB_PASS must be set (or loaded via update_secrets).")
     
-    url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}"
-    return create_engine(url)
+    url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{name}?sslmode={sslmode}"
+    return create_engine(url, pool_pre_ping=True)
 
 
 def create_database_schema_if_not_exists(engine):
