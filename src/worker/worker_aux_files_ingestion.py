@@ -36,7 +36,11 @@ class AuxFilesIngestionConsumer(BaseSQSConsumer):
     queue_name = os.getenv("SQS_QUEUE_AUX_FILES")
     queue_url = f"https://sqs.us-east-1.amazonaws.com/461391639742/{queue_name}"
 
-    def handle(self, payload, raw_message, message_attributes ):
+    def handle(self, payload, raw_message, message_attributes ):        # Ignore S3 TestEvent messages (sent when configuring notifications)
+        if isinstance(payload, dict) and payload.get("Event") == "s3:TestEvent":
+            logger.info("Ignoring S3 TestEvent message.")
+            return
+
         current_file_key = ""
         now = datetime.now().date()
 
@@ -50,7 +54,8 @@ class AuxFilesIngestionConsumer(BaseSQSConsumer):
             
             for file_key in files_key:
                 current_file_key = file_key
-                file = s3_service.download_csv_file(current_file_key, "curated", folder, bucket_name=s3_raw_bucket)
+                base_name = current_file_key.split("/")[-1]
+                file = s3_service.download_csv_file(base_name, "curated", folder, bucket_name=s3_raw_bucket)
                 if not file:
                     continue        
                 
@@ -72,7 +77,7 @@ class AuxFilesIngestionConsumer(BaseSQSConsumer):
                 s3_service.move_files(
                     source_folder="curated/",
                     destination_folder="curated-processed/",
-                    file_list=[current_file_key],
+                    file_list=[base_name],
                     dry_run=False
                 )
                 s3_service.clean_local_files(folder, [file_key])
