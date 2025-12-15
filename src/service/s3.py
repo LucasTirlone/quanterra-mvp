@@ -399,8 +399,12 @@ class S3CsvService:
             s3_folder += "/"
         
         # Build S3 key
-        s3_key = f"{s3_folder}{file_name}"
-        
+        file_name = (file_name or "").lstrip("/")
+        s3_folder = (s3_folder or "").strip("/")
+        if file_name.startswith(f"{s3_folder}/"):
+            s3_key = file_name
+        else:
+            s3_key = f"{s3_folder}/{file_name}"
         # Create local folder if it doesn't exist
         local_folder.mkdir(parents=True, exist_ok=True)
         local_path = local_folder / file_name
