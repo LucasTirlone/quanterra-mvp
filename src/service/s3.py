@@ -250,7 +250,11 @@ class S3CsvService:
         for file_name in file_list:
             # Build source and destination keys
             source_key = f"{source_folder}/{file_name}"
-            destination_key = f"{destination_folder}/{file_name}_{datetime.datetime.now().strftime('%m%d%Y')}"
+            stem = Path(file_name).stem
+            suffix = Path(file_name).suffix
+            date = datetime.datetime.now().strftime("%m-%d-%Y")
+            destination_key = f"{destination_folder}/{stem}_{date}{suffix}"
+
             
             try:
                 if dry_run:
