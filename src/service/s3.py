@@ -250,7 +250,7 @@ class S3CsvService:
         for file_name in file_list:
             # Build source and destination keys
             source_key = f"{source_folder}/{file_name}"
-            destination_key = f"{destination_folder}/{file_name}_{(datetime.now().strftime('%m%d%Y'))}"
+            destination_key = f"{destination_folder}/{file_name}_{datetime.datetime.now().strftime('%m%d%Y')}"
             
             try:
                 if dry_run:
@@ -408,6 +408,7 @@ class S3CsvService:
         # Create local folder if it doesn't exist
         local_folder.mkdir(parents=True, exist_ok=True)
         local_path = local_folder / file_name
+        local_path.parent.mkdir(parents=True, exist_ok=True)
         
         logger.info(f"Downloading CSV file from s3://{bucket_name}/{s3_key}")
         logger.info(f"Saving to: {local_path}")
