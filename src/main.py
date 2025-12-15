@@ -2,8 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from secret_manager import update_secrets
-# TODO Fix secret manager
-#update_secrets()
+update_secrets()
 
 from worker.worker_manual_chain_open_close import ManualOpenCloseChainConsumer
 from worker.worker_aux_files_ingestion import AuxFilesIngestionConsumer
