@@ -85,6 +85,10 @@ class AuxFilesIngestionConsumer(BaseSQSConsumer):
                 create_file_event_log_for_uploaded(self.db_session, current_file_key, None, now)
         
         except Exception as error:
+            try:
+                self.db_session.rollback()
+            except Exception:
+                pass
             create_file_event_log_for_error(self.db_session, current_file_key, None, now, "AUX_FILES_INGESTION", str(error))
     
     
