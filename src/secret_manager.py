@@ -2,9 +2,10 @@ import boto3
 import os
 from botocore.exceptions import ClientError
 
+DB_SECRET_ID = os.getenv("DB_SECRET_ID", "/mvp/db/credentials")
+
 secrets_envs = {
     "PARTNER_TOKEN": "quanterra/prod/partner/api_key",
-    "DB_SECRET_ID" = os.getenv("DB_SECRET_ID", "/mvp/db/credentials")
 }
 
 """Update secrets of AWS Secrets Manager in local."""
